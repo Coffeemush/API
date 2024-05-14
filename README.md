@@ -2,8 +2,8 @@
 
 # Broker
 
-    # Publish a message to a topic
-    mosquitto_pub -h localhost -t "your/topic" -m "Hello, MQTT!"
+    # Command to publish a message to the topic flask/mqtt
+    mosquitto_pub -h localhost -p 1884 -t "flask/mqtt" -m "Hello, MQTT!"
 
-    # Subscribe to a topic to receive messages
-    mosquitto_sub -h localhost -t "your/topic"
+    # Command to subscribe to the previous topic
+    mosquitto_sub -h localhost -p 1884 -t "flask/mqtt"
