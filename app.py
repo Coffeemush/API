@@ -23,6 +23,8 @@ topic = os.environ.get('TOPIC')
 mqtt = Mqtt(app)
 
 routes_user(app)
+routes_coffeemush(app)
+routes_token(app)
 routes_mqtt(mqtt, topic)
 #test
 @app.route('/')

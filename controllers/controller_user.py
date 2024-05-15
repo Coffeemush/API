@@ -4,6 +4,7 @@ import jwt
 from models.models import *
 from utils.utils import checktoken
 import logging
+import pymongo
 from pymongo import UpdateOne
     
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
@@ -29,14 +30,7 @@ def login():
         response = {'valid': False, 'error': 'Email or password incorrect.'}
         return jsonify(response)
 
-def logout():
-    data = request.get_json()
-    try:
-        tokens.delete_one({'token': data['session_token']})
-        response = {'valid': True}
-    except pymongo.errors.DuplicateKeyError as description_error:
-        response = {'valid': False, 'error': str(description_error)}
-    return jsonify(response)
+
 
 def register():
     data = request.get_json()
@@ -95,11 +89,7 @@ def get_user_info():
     return jsonify(response)
 
 
-def check_token():
-    data = request.get_json()
-    token = data['session_token']
-    check = checktoken(token)
-    return jsonify(check)
+
 
         
         
