@@ -8,6 +8,9 @@ def handle_connect(mqtt, topic):
         logging.info(f"Subscribing to topic '{topic}'...")
         mqtt.subscribe(topic)
         logging.info("Subscribtion finished.")
+        #test
+        for top in ['sensor/temperature', 'sensor/humidity', 'sensor/light', 'sensor/float_switch']:
+            mqtt.subscribe(top)
 
 
 def handle_mqtt_message(mqtt):

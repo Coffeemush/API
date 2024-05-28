@@ -62,7 +62,7 @@ def register():
 def get_user_info():
     
     data    = request.get_json()
-    token   = data['session_token']
+    token   = data['token']
     check   = checktoken(token)
     
     if check['valid'] == True:

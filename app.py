@@ -3,14 +3,17 @@ import os
 from flask_mqtt import Mqtt
 from routes.routes import *
 import logging
+from dotenv import load_dotenv
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
 
-
+load_dotenv()
 logging.info("Starting app...")
 
 app = Flask(__name__)
 
 app.config['MQTT_BROKER_URL'] = os.environ.get('MQTT_BROKER_URL')
+logging.info(os.environ.get('MQTT_BROKER_URL'))
 app.config['MQTT_BROKER_PORT'] = int(os.environ.get('MQTT_BROKER_PORT'))
 #app.config['MQTT_USERNAME'] = os.environ.get('MQTT_USERNAME')
 #app.config['MQTT_PASSWORD'] = os.environ.get('MQTT_PASSWORD')

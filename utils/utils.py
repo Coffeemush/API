@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 
 def checktoken(token):
         
-        if(token=="internal"):
-            return {'valid': True, 'email': 'internal'}
+        if(token=="internal_testing"):
+            return {'valid': True, 'email': 'internal_testing'}
         
         user_data = tokens.find_one({'token': token})
 

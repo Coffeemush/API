@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from utils.utils import checktoken, get_data_for_graphic()
+from utils.utils import checktoken, get_data_for_graphic
 from models.models import users, devices, SENSORS, devices_data
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
