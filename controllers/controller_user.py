@@ -20,15 +20,16 @@ def login():
         token = jwt.encode({'username': user_email}, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), algorithm='HS256')
         response = {'valid': True, 'user_given_name': doc['user_given_name'], 'user_picture': "https://picsum.photos/200", 'user_token': token, 'user_email':user_email}
         entry = {
+            "vallid": True,
             "token": token,
             "data": datetime.now().isoformat(),
             "user_email": user_email,
         }
         res = tokens.insert_one(entry)
-        return jsonify(response)
+        return jsonify(response), 200
     else:
         response = {'valid': False, 'error': 'Email or password incorrect.'}
-        return jsonify(response)
+        return jsonify(response), 400
 
 
 
@@ -54,10 +55,10 @@ def register():
             "user_email": entry['user_email'],
         }
         res = tokens.insert_one(token_entry)
-        response = {'valid': True, 'session_token': token}
+        response = {'valid': True, 'session_token': token}, 200
     except pymongo.errors.DuplicateKeyError as description_error:
-        response = {'valid': False, 'error': str(description_error)}
-    return jsonify(response)
+        response = {'valid': False, 'error': str(description_error)}, 400
+    return jsonify(response), 400
 
 def get_user_info():
     
@@ -78,15 +79,15 @@ def get_user_info():
             'user_city'         : doc['user_city'],
             'user_address'      : doc['user_address'],
             'user_picture'      : "https://picsum.photos/200",
-            'user_token'        : token
+            'token'        : token
         }
         
-        return jsonify(response)
+        return jsonify(response), 200
     
     else:
-        response = {'valid': False, 'message': check['error']}
+        response = {'valid': False, 'message': check['error']}, 400
     
-    return jsonify(response)
+    return jsonify(response), 400
 
 
 
