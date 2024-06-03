@@ -55,7 +55,7 @@ def register():
             "user_email": entry['user_email'],
         }
         res = tokens.insert_one(token_entry)
-        response = {'valid': True, 'session_token': token}, 200
+        response = {'valid': True, 'token': token}, 200
     except pymongo.errors.DuplicateKeyError as description_error:
         response = {'valid': False, 'error': str(description_error)}, 400
     return jsonify(response), 400
