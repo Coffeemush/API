@@ -12,7 +12,7 @@ help:
 
 .PHONY: start-api
 start-api:
-	$(DOCKER_COMPOSE) up -d $(SERVICE_NAME)
+	$(DOCKER_COMPOSE) up -d --build $(SERVICE_NAME)
 
 .PHONY: stop-api
 stop-api:

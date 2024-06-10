@@ -2,6 +2,7 @@ from flask import jsonify, request
 from utils.utils import checktoken, get_data_for_graphic
 from models.models import users, devices, SENSORS, devices_data
 import logging
+import json
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
 
 
@@ -20,20 +21,20 @@ def connect():
             doc = users.find_one({'user_email': check['email']})
 
             if 'connections' in doc:
-                doc['connections'][data['id']] = data['options']
+                doc['connections'][data['id']] = json.loads(data['options'])
                 users.update_one({'user_email': check['email']}, {'$set': doc})
 
             else:
-                doc['connections'] = {data['id']: data['options']}
+                doc['connections'] = {data['id']: json.loads(data['options'])}
                 users.update_one({'user_email': check['email']}, {'$set': doc})
 
-            return jsonify({'valid': True})
+            return jsonify({'valid': True}), 200
         
         except Exception as e:
-            return jsonify({'valid': False, 'error': str(e)})   
+            return jsonify({'valid': False, 'error': str(e)}) , 400  
 
     else:
-        return jsonify(check)
+        return jsonify(check), 400
     
 
 def disconnect():

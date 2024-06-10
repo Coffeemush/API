@@ -22,13 +22,13 @@ if os.environ.get('MQTT_TLS_ENABLED') == 'False':
     app.config['MQTT_TLS_ENABLED'] = False
 else:
     app.config['MQTT_TLS_ENABLED'] = True
-topic = os.environ.get('TOPIC')
+topics = os.environ.get('TOPICS').split(',')
 mqtt = Mqtt(app)
 
 routes_user(app)
 routes_coffeemush(app)
 routes_token(app)
-routes_mqtt(mqtt, topic)
+routes_mqtt(mqtt, topics)
 #test
 @app.route('/')
 def index():

@@ -10,6 +10,7 @@ def routes_user(app):
     app.route("/api/login", methods=['POST'])(login)
     app.route("/api/login", methods=['PUT'])(register)
     app.route("/api/user", methods=['GET'])(get_user_info)
+    app.route("/api/user", methods=['PUT'])(edit_user)
 
 def routes_token(app):
     app.route("/api/auth", methods=['GET'])(check_token)
@@ -20,7 +21,7 @@ def routes_coffeemush(app):
     app.route("/api/connection", methods=['DELETE'])(disconnect)
     app.route("/api/connection", methods=['GET'])(get_data)
 
-def routes_mqtt(mqtt, topic):
+def routes_mqtt(mqtt, topics):
     logging.info("Connecting mqtt...")
-    handle_connect(mqtt, topic)
+    handle_connect(mqtt, topics)
     handle_mqtt_message(mqtt)
