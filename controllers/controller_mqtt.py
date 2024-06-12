@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def handle_connect(mqtt, topics):
     @mqtt.on_connect()
     def handle_connect(client, userdata, flags, rc):
-        mqtt.subscribe('cm/picture')
+        mqtt.subscribe('CM1')
         for topic in topics:
             logging.info(f"Subscribing to topic '{topic}'...")
             mqtt.subscribe(topic)
@@ -24,26 +24,23 @@ def handle_mqtt_message(mqtt):
             pass
         elif message.topic == 'device1/event':
             pass
-        elif message.topic == 'cm/picture':
+        elif message.topic == 'CM1/CAM':
             now = datetime.now()
             filename = now.strftime("%m%d%Y-%H%M%S.jpg")
-            f = open(".debug/" + filename, 'wb')
-            
-            # Ensure proper padding
-            img_data = message.payload
-            missing_padding = len(img_data) % 4
-            if missing_padding:
-                img_data += b'=' * (4 - missing_padding)
+            filepath = ".debug/" + filename
             
             try:
-                final_img = base64.b64decode(img_data)
-                f.write(final_img)
-            except binascii.Error as e:
-                logging.error(f"Error decoding base64 data: {e}")
-            finally:
-                f.close()
+                with open(filepath, 'wb') as f:
+                    f.write(message.payload)
+                logging.info(f"Image saved to {filepath}")
+            except Exception as e:
+                logging.error(f"Unexpected error: {e}")
         
         logging.info("Message received.")
         logging.info(message)
         logging.info(message.topic)
         logging.info(message.payload)
+
+# Example usage
+# Assuming `mqtt` is your MQTT client instance
+# handle_mqtt_message(mqtt)

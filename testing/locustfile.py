@@ -6,7 +6,8 @@ from faker import Faker
 
 fake = Faker()
 registered_users = []
-tokens = ["internal_testing"]
+tokens = set()
+connections = {}
 devices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 class MyUser(HttpUser):
@@ -30,6 +31,7 @@ class MyUser(HttpUser):
         
         if response.status_code == 200:
             registered_users.append({"email": email, "password": password})
+            tokens.add([response.json()['token'], email])
     
     @task(2)
     def test_login(self):
@@ -40,32 +42,40 @@ class MyUser(HttpUser):
                 "user_password": user["password"]
             })
             if response.status_code == 200:
-                print("True", response)
-                tokens.append(response.json().get('token'))
-            else:
-                print("False", response)  
+                tokens.add([response.json()['token'], user["email"]])
 
 
     @task(3)
     def test_user_get(self):
-        token = random.choice(tokens)
+      token_list = list(tokens)
+      if token_list:
+        token = random.choice(token_list)[0]
         self.client.get("/api/user", json={'token': token})
 
     @task(3)
     def test_auth_get(self):
-        token = random.choice(tokens)
+      token_list = list(tokens)
+      if token_list:
+        token = random.choice(token_list)[0]
         self.client.get("/api/auth", json={'token': token})
 
     @task(1)
     def test_auth_delete(self):
-        token = random.choice(tokens)
-        self.client.delete("/api/auth", json={'token': token})
+      token_list = list(tokens)
+      if token_list:
+        token = random.choice(token_list)[0]
+        response = self.client.delete("/api/auth", json={'token': token})
+        if response.status_code == 200:
+            tokens.discard(token)
 
     @task(1)
     def test_connection_post(self):
-        token = random.choice(tokens)
+      token_list = list(tokens)
+      if token_list:
+        aux = random.choice(token_list)
+        token = aux[0]
         device = random.choice(devices)
-        self.client.post("/api/connection", json={
+        response = self.client.post("/api/connection", json={
             "device_id": device,
             "token": token,
             "options": {
@@ -74,18 +84,34 @@ class MyUser(HttpUser):
                 "option3": ''.join(random.choices(string.digits, k=2)),
             }
         })
+        if response.status_code == 200:
+            if aux[1] in connections:
+                connections[aux[1]].append(device)
+            else:
+                connections[aux[1]] = [device]
 
     @task(1)
     def test_connection_delete(self):
-        token = random.choice(tokens)
-        device = random.choice(devices)
-        self.client.delete("/api/connection", json={
-            "device_id": fake.uuid4(),
-            "token": token
-        })
+      token_list = list(tokens)
+      if token_list:
+        aux = random.choice(token_list)
+        if aux[1] in connections:
+            token = aux[0]
+            device = random.choice(connections[aux[1]])
+            response = self.client.delete("/api/connection", json={
+                "device_id": device,
+                "token": token
+            })
+            if response.status_code == 200:
+                if len(connections[aux[1]]) == 1:
+                    del connections[aux[1]]
+                else:
+                   connections[aux[1]] = [x for x in connections[aux[1]] if x != device]
+           
 
     @task(3)
     def test_connection_get(self):
-        token = random.choice(tokens)
-        device = random.choice(devices)
+      token_list = list(tokens)
+      if token_list:
+        token = random.choice(token_list)[0]
         self.client.get("/api/connection", json={'token': token})

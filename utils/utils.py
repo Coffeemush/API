@@ -1,5 +1,18 @@
-from models.models import tokens, users, devices_data
+from models.models import tokens, users, devices_data, devices
 from datetime import datetime, timedelta
+import random
+import string
+from faker import Faker
+import logging
+import pymongo
+    
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
+
+
+humidity_entry = (51.0, 99.0)
+temperature_entry = (10.0, 30.0)
+light_entry = (150.0, 500.0)
+
 
 def checktoken(token):
         
@@ -48,5 +61,10 @@ def get_data_for_graphic(id, sensor, range_type='day', dates=[None, None]):
             
             else:
                 dates[1] = datetime(dates[0].year, dates[0].month - 1, dates[0].day)
-
-    return devices_data[id][sensor].find({'date': {'$gte': dates[0], '$lte': dates[1]}})
+    
+    return devices_data.find({
+                    'id': id,
+                    '$and': [
+                        {f'{sensor}.time': {'$gte': dates[0], '$lte': dates[1]}}
+                    ]
+                })

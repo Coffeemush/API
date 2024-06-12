@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from utils.utils import checktoken, get_data_for_graphic
+
 from models.models import users, devices, SENSORS, devices_data
 import logging
 import json
@@ -52,16 +53,16 @@ def disconnect():
             if 'connections' in doc and [data['id']] in doc['connections']:
                 del doc['connections'][data['id']]
                 users.update_one({'user_email': check['email']}, {'$set': doc})
-                return jsonify({'valid': True})
+                return jsonify({'valid': True}), 200
             
             else:
-                return jsonify({'valid': False, 'error': f"No connection with id '{data['id']}' found for user with email '{check['email']}'"})
+                return jsonify({'valid': False, 'error': f"No connection with id '{data['id']}' found for user with email '{check['email']}'"}), 200
         
         except Exception as e:
-            return jsonify({'valid': False, 'error': str(e)})   
+            return jsonify({'valid': False, 'error': str(e)}), 400   
 
     else:
-        return jsonify(check)
+        return jsonify(check), 400
     
 
 def get_data():
@@ -84,15 +85,15 @@ def get_data():
                     answer.append(device)
                 
                 if len(answer) == 0:
-                    return jsonify({'valid': False, 'error': 'No connected devices found for this user'})
+                    return jsonify({'valid': False, 'error': 'No connected devices found for this user'}), 200
                     
-                return jsonify({'valid': True, 'devices': answer})
+                return jsonify({'valid': True, 'devices': answer}), 200
 
             else:
-                return jsonify({'valid': False, 'error': f"No connection found for user with email '{check['email']}'"})
+                return jsonify({'valid': False, 'error': f"No connection found for user with email '{check['email']}'"}), 200
         
         except Exception as e:
-            return jsonify({'valid': False, 'error': str(e)})   
+            return jsonify({'valid': False, 'error': str(e)}), 400   
 
     else:
-        return jsonify(check)
+        return jsonify(check), 400
