@@ -39,3 +39,4 @@ werkzeug==3.0.2
 zipp==3.18.1
 zope.event==5.0
 zope.interface==6.4.post2
+matplotlib==3.8.0

@@ -18,6 +18,7 @@ def routes_token(app):
 
 def routes_coffeemush(app):
     app.route("/api/connection", methods=['POST'])(connect)
+    app.route("/api/connectionName", methods=['POST'])(updateName)
     app.route("/api/connection", methods=['DELETE'])(disconnect)
     app.route("/api/connection", methods=['GET'])(get_data)
 

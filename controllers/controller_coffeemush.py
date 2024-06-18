@@ -122,22 +122,52 @@ def disconnect():
 def get_data():
     # Needed parameters
     #   - token: Valid token
+    #   - id(optional): id of a device (if there is no this field it just returns all devices)
+    #   - sensor: sensor type (if there is no this field it does not return history data for the device)
     token = request.headers.get('token')
+    id = request.headers.get('id')
+    sensor = request.headers.get('sensor')
     check = checktoken(token)
     
     if check['valid']:
-        try:
+        try:                    
             doc = users.find_one({'user_email': check['email']})
-            answer = []
-            if 'connections' in doc:
-                for key, value in doc['connections'].items():
-                    device = devices.find_one({'id': key})
+            
+            if id is not None:
+                if 'connections' not in doc or id not in doc['connections']:
+                    return jsonify({"valid": False, "error": "You are not connected to this device"}), 200
+                
+                device = devices.find_one({'id': id})
+                
+                if device is None:
+                    return jsonify({"valid": False, "error": "Device not found in database"}), 200
                     
-                    #for sensor in SENSORS:
-                    #    device[f'chart_{sensor}'] = get_data_for_graphic(key, sensor)
+                if sensor is None:
+                    if 'name' not in device:
+                        device['name'] = id
                     if '_id' in device:
                         del device['_id']
-                    answer.append(device)
+                    return jsonify({"valid": True, "device": device}), 200
+                
+                else:
+                    period = request.headers.get('period')
+                    if period is None:
+                        period = 'day'
+                    startDate = request.headers.get('startDate')
+                    endDate = request.headers.get('endDate')
+                    device_data = get_data_for_graphic(id, sensor, period, [startDate, endDate])
+                    return jsonify({"valid": True, "data": device_data}), 200
+            answer = []
+            if 'connections' in doc:
+                logging.info(doc['connections'])
+                for key, value in doc['connections'].items():
+                    device = devices.find_one({'id': key})
+                    logging.info(" ", device)
+                    if device is not None:
+                        if 'name' in device:
+                            answer.append(device['name'])
+                        else:
+                            answer.append(key)
                 
                 if len(answer) == 0:
                     return jsonify({'valid': False, 'error': 'No connected devices found for this user'}), 200
@@ -152,4 +182,31 @@ def get_data():
             return jsonify({'valid': False, 'error': str(e)}), 400   
 
     else:
+        return jsonify(check), 400
+    
+def updateName():
+    # Needed parameters
+    #   - token: Valid token
+    #   - id: Valid coffeemush id
+    #   - name: New name for device
+
+    data = request.get_json()
+    check = checktoken(data['token'])
+    
+    if check['valid']:
+        try:
+            doc = users.find_one({'user_email': check['email']})
+            id = data['id']
+            if 'connections' in doc and id in doc['connections']:
+                device = devices.find_one({'id': id})
+                device['name'] = data['name']
+                devices.update_one({'id': id}, {'$set': device})
+            return jsonify({'valid': True}), 200
+        
+        except Exception as e:
+            logging.info(str(e))
+            return jsonify({'valid': False, 'error': str(e)}) , 400  
+
+    else:
+        logging.info(check)
         return jsonify(check), 400

@@ -5,6 +5,7 @@ import string
 from faker import Faker
 import logging
 import pymongo
+import matplotlib.pyplot as plt
     
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
 
@@ -46,7 +47,7 @@ def get_data_for_graphic(id, sensor, range_type='day', dates=[None, None]):
     #   - sensor: Valid sensor name
     #   - (Optional)long: Tells how long the range between dates should be. Ending date being now()
     #   - (Optional)dates: Tells range of dates to return data
-    if dates is None:
+    if dates == [None, None]:
         dates[0] = datetime.now().date()
 
         if range_type == 'day':
@@ -61,10 +62,46 @@ def get_data_for_graphic(id, sensor, range_type='day', dates=[None, None]):
             
             else:
                 dates[1] = datetime(dates[0].year, dates[0].month - 1, dates[0].day)
-    
-    return devices_data.find({
-                    'id': id,
-                    '$and': [
-                        {f'{sensor}.time': {'$gte': dates[0], '$lte': dates[1]}}
-                    ]
+    dates = [date.isoformat() for date in dates]
+    dates.sort()
+    logging.info(dates)
+    logging.info(sensor)
+    logging.info(id)
+    res = devices_data.find({
+                    'id': id
+                    #'$and': [
+                    #    #{f'{sensor}.time': {'$gte': dates[0], '$lte': dates[1]}}
+                    #    {f'{sensor}.time': {'$gte': dates[1]}}
+                    #]
                 })
+    res_list = list(res)
+    processed_data = []
+    for doc in res_list:
+        if '_id' in doc:
+            del doc['_id']
+        if sensor in doc:
+            for entry in doc[sensor]:
+                processed_data.append({
+                    'value': entry['value'],
+                    'time': entry['time'].isoformat()
+                })
+    
+    logging.info(processed_data)
+    values = [entry['value'] for entry in processed_data]
+    times = [datetime.fromisoformat(entry['time']) for entry in processed_data]
+
+    # Plot the data
+    plt.figure(figsize=(10, 5))
+    plt.plot(times, values, marker='o', linestyle='-', color='b')
+
+    # Format the plot
+    plt.xlabel('Time')
+    plt.ylabel('Value')
+    plt.title('Sensor Data Over Time')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+    return processed_data

@@ -56,4 +56,4 @@ def create_random_devices(num=10000, data_entries=(2531,51235)):
         devices_data.insert_one(entry)
 
 
-#create_random_devices()
+#create_random_devices(100)
