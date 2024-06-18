@@ -22,19 +22,38 @@ def connect():
             doc = users.find_one({'user_email': check['email']})
 
             if 'connections' in doc:
-                doc['connections'][data['id']] = json.loads(data['options'])
+                try:
+                    logging.info(f"data['options'] before json.loads: {data['options']}")
+                    doc['connections'][data['id']] = json.loads(data['options'])
+                except json.JSONDecodeError as e:
+                    logging.error(f"JSONDecodeError: {str(e)} - Storing as string")
+                    doc['connections'][data['id']] = data['options']
+                except Exception as e:
+                    logging.error(f"Unexpected error: {str(e)}")
+                    return jsonify({'valid': False, 'error': str(e)}), 400
                 users.update_one({'user_email': check['email']}, {'$set': doc})
 
             else:
-                doc['connections'] = {data['id']: json.loads(data['options'])}
+                try:
+                    logging.info(f"data['options'] before json.loads: {data['options']}")
+                    doc['connections'] = {data['id']: json.loads(data['options'])}
+                except json.JSONDecodeError as e:
+                    logging.error(f"JSONDecodeError: {str(e)} - Storing as string")
+                    doc['connections'] = {data['id']: data['options']}
+                except Exception as e:
+                    logging.error(f"Unexpected error: {str(e)}")
+                    return jsonify({'valid': False, 'error': str(e)}), 400
+                
                 users.update_one({'user_email': check['email']}, {'$set': doc})
 
             return jsonify({'valid': True}), 200
         
         except Exception as e:
+            logging.info(str(e))
             return jsonify({'valid': False, 'error': str(e)}) , 400  
 
     else:
+        logging.info(check)
         return jsonify(check), 400
     
 
@@ -50,7 +69,7 @@ def disconnect():
         try:
             doc = users.find_one({'user_email': check['email']})
 
-            if 'connections' in doc and [data['id']] in doc['connections']:
+            if 'connections' in doc and data['id'] in doc['connections']:
                 del doc['connections'][data['id']]
                 users.update_one({'user_email': check['email']}, {'$set': doc})
                 return jsonify({'valid': True}), 200
@@ -59,17 +78,52 @@ def disconnect():
                 return jsonify({'valid': False, 'error': f"No connection with id '{data['id']}' found for user with email '{check['email']}'"}), 200
         
         except Exception as e:
+            logging.info(e)
             return jsonify({'valid': False, 'error': str(e)}), 400   
 
     else:
         return jsonify(check), 400
     
 
+#def get_data():
+#    # Needed parameters
+#    #   - token: Valid token
+#    token   = request.headers.get('token')
+#    check = checktoken(token)
+#    
+#    if check['valid']:
+#        try:
+#            doc = users.find_one({'user_email': check['email']})
+#            answer = []
+#            if 'connections' in doc:
+#                for key, value in doc['connections'].items():
+#                    device = devices.find_one({'id': key})
+#                    
+#                    for sensor in SENSORS:
+#                        device[f'chart_{sensor}'] = get_data_for_graphic(key, sensor)
+#                    
+#                    answer.append(device)
+#                
+#                if len(answer) == 0:
+#                    return jsonify({'valid': False, 'error': 'No connected devices found for this user'}), 200
+#                    
+#                return jsonify({'valid': True, 'devices': answer}), 200
+#
+#            else:
+#                return jsonify({'valid': False, 'error': f"No connection found for user with email '{check['email']}'"}), 200
+#        
+#        except Exception as e:
+#            logging.info(e)
+#            return jsonify({'valid': False, 'error': str(e)}), 400   
+#
+#    else:
+#        return jsonify(check), 400
+
 def get_data():
     # Needed parameters
     #   - token: Valid token
-    data = request.get_json()
-    check = checktoken(data['token'])
+    token = request.headers.get('token')
+    check = checktoken(token)
     
     if check['valid']:
         try:
@@ -79,9 +133,10 @@ def get_data():
                 for key, value in doc['connections'].items():
                     device = devices.find_one({'id': key})
                     
-                    for sensor in SENSORS:
-                        device[f'chart_{sensor}'] = get_data_for_graphic(key, sensor)
-                    
+                    #for sensor in SENSORS:
+                    #    device[f'chart_{sensor}'] = get_data_for_graphic(key, sensor)
+                    if '_id' in device:
+                        del device['_id']
                     answer.append(device)
                 
                 if len(answer) == 0:
@@ -93,6 +148,7 @@ def get_data():
                 return jsonify({'valid': False, 'error': f"No connection found for user with email '{check['email']}'"}), 200
         
         except Exception as e:
+            logging.info(e)
             return jsonify({'valid': False, 'error': str(e)}), 400   
 
     else:

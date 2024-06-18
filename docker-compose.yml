@@ -9,7 +9,7 @@ services:
         - "5000:5000"
       depends_on:
         - mongo
-        - mqtt-broker
+#        - mqtt-broker
       env_file:
         - .env
 
@@ -24,12 +24,12 @@ services:
         ports:
             - "27017:27017"
 
-    mqtt-broker:
-      image: eclipse-mosquitto:latest
-      ports:
-        - "1884:1883"
-      volumes:
-        - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf
+#    mqtt-broker:
+#      image: eclipse-mosquitto:latest
+#      ports:
+#        - "1884:1883"
+#      volumes:
+#        - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
     mongo-express:
         image: mongo-express

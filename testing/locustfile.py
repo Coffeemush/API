@@ -15,12 +15,13 @@ class MyUser(HttpUser):
 
     @task(1)
     def test_register(self):
-        username = fake.user_name()
+        username = fake.name()
+        surname = fake.last_name()
         email = fake.email()
         password = fake.password()
         
         response = self.client.put("/api/login", json={
-            "user_full_name": username,
+            "user_surname": surname,
             "user_given_name": username,
             "user_email": email,
             "user_phone": ''.join(random.choices(string.digits, k=9)),
@@ -31,7 +32,7 @@ class MyUser(HttpUser):
         
         if response.status_code == 200:
             registered_users.append({"email": email, "password": password})
-            tokens.add([response.json()['token'], email])
+            tokens.add((response.json()['token'], email))  # Use tuple instead of list
     
     @task(2)
     def test_login(self):
@@ -42,76 +43,74 @@ class MyUser(HttpUser):
                 "user_password": user["password"]
             })
             if response.status_code == 200:
-                tokens.add([response.json()['token'], user["email"]])
-
+                tokens.add((response.json()['token'], user["email"]))  # Use tuple instead of list
 
     @task(3)
     def test_user_get(self):
-      token_list = list(tokens)
-      if token_list:
-        token = random.choice(token_list)[0]
-        self.client.get("/api/user", json={'token': token})
+        token_list = list(tokens)
+        if token_list:
+            token = random.choice(token_list)[0]
+            self.client.get("/api/user", json={'token': token})
 
     @task(3)
     def test_auth_get(self):
-      token_list = list(tokens)
-      if token_list:
-        token = random.choice(token_list)[0]
-        self.client.get("/api/auth", json={'token': token})
+        token_list = list(tokens)
+        if token_list:
+            token = random.choice(token_list)[0]
+            self.client.get("/api/auth", json={'token': token})
 
     @task(1)
     def test_auth_delete(self):
-      token_list = list(tokens)
-      if token_list:
-        token = random.choice(token_list)[0]
-        response = self.client.delete("/api/auth", json={'token': token})
-        if response.status_code == 200:
-            tokens.discard(token)
+        token_list = list(tokens)
+        if token_list:
+            token = random.choice(token_list)[0]
+            response = self.client.delete("/api/auth", json={'token': token})
+            if response.status_code == 200:
+                tokens.discard((token,))  # Use tuple instead of list
 
     @task(1)
     def test_connection_post(self):
-      token_list = list(tokens)
-      if token_list:
-        aux = random.choice(token_list)
-        token = aux[0]
-        device = random.choice(devices)
-        response = self.client.post("/api/connection", json={
-            "device_id": device,
-            "token": token,
-            "options": {
-                "option1": ''.join(random.choices(string.digits, k=2)),
-                "option2": ''.join(random.choices(string.digits, k=2)),
-                "option3": ''.join(random.choices(string.digits, k=2)),
-            }
-        })
-        if response.status_code == 200:
-            if aux[1] in connections:
-                connections[aux[1]].append(device)
-            else:
-                connections[aux[1]] = [device]
+        token_list = list(tokens)
+        if token_list:
+            aux = random.choice(token_list)
+            token = aux[0]
+            device = random.choice(devices)
+            response = self.client.post("/api/connection", json={
+                "device_id": device,
+                "token": token,
+                "options": {
+                    "option1": ''.join(random.choices(string.digits, k=2)),
+                    "option2": ''.join(random.choices(string.digits, k=2)),
+                    "option3": ''.join(random.choices(string.digits, k=2)),
+                }
+            })
+            if response.status_code == 200:
+                if aux[1] in connections:
+                    connections[aux[1]].append(device)
+                else:
+                    connections[aux[1]] = [device]
 
     @task(1)
     def test_connection_delete(self):
-      token_list = list(tokens)
-      if token_list:
-        aux = random.choice(token_list)
-        if aux[1] in connections:
-            token = aux[0]
-            device = random.choice(connections[aux[1]])
-            response = self.client.delete("/api/connection", json={
-                "device_id": device,
-                "token": token
-            })
-            if response.status_code == 200:
-                if len(connections[aux[1]]) == 1:
-                    del connections[aux[1]]
-                else:
-                   connections[aux[1]] = [x for x in connections[aux[1]] if x != device]
-           
+        token_list = list(tokens)
+        if token_list:
+            aux = random.choice(token_list)
+            if aux[1] in connections:
+                token = aux[0]
+                device = random.choice(connections[aux[1]])
+                response = self.client.delete("/api/connection", json={
+                    "device_id": device,
+                    "token": token
+                })
+                if response.status_code == 200:
+                    if len(connections[aux[1]]) == 1:
+                        del connections[aux[1]]
+                    else:
+                        connections[aux[1]] = [x for x in connections[aux[1]] if x != device]
 
     @task(3)
     def test_connection_get(self):
-      token_list = list(tokens)
-      if token_list:
-        token = random.choice(token_list)[0]
-        self.client.get("/api/connection", json={'token': token})
+        token_list = list(tokens)
+        if token_list:
+            token = random.choice(token_list)[0]
+            self.client.get("/api/connection", json={'token': token})

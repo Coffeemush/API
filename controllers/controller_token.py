@@ -4,10 +4,12 @@ from utils.utils import checktoken
 import pymongo
 
 def check_token():
-    data = request.get_json()
-    token = data['token']
+    token   = request.headers.get('token')
     check = checktoken(token)
-    return jsonify(check)
+    if check["valid"] == True: 
+        return jsonify(check), 200
+    else:
+        return jsonify(check), 400
 
 def logout():
     data = request.get_json()
@@ -16,4 +18,4 @@ def logout():
         response = {'valid': True}
     except pymongo.errors.DuplicateKeyError as description_error:
         response = {'valid': False, 'error': str(description_error)}
-    return jsonify(response)
+    return jsonify(response), 200

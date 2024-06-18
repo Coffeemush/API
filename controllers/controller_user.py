@@ -84,6 +84,7 @@ def get_user_info():
     
     else:
         response = {'valid': False, 'message': check['error']}
+    logging.info(response)
     return jsonify(response), 400
 
 def edit_user():
@@ -95,7 +96,6 @@ def edit_user():
         doc = users.find_one({'user_email': user_email})
         if doc:
             try:
-                
                 logging.info(doc)
                 if "user_surname" in data:
                     doc["user_surname"] = data['user_surname']
