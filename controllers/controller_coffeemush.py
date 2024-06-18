@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, send_file
 from utils.utils import checktoken, get_data_for_graphic
 
 from models.models import users, devices, SENSORS, devices_data
@@ -155,9 +155,8 @@ def get_data():
                         period = 'day'
                     startDate = request.headers.get('startDate')
                     endDate = request.headers.get('endDate')
-                    device_data = get_data_for_graphic(id, sensor, period, [startDate, endDate])
-                    return jsonify({"valid": True, "data": device_data}), 200
-            answer = []
+                    buf = get_data_for_graphic(id, sensor, period, [startDate, endDate])
+                    return send_file(buf, mimetype='image/png', as_attachment=False, attachment_filename='plot.png')
             if 'connections' in doc:
                 logging.info(doc['connections'])
                 for key, value in doc['connections'].items():

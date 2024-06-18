@@ -64,9 +64,6 @@ def get_data_for_graphic(id, sensor, range_type='day', dates=[None, None]):
                 dates[1] = datetime(dates[0].year, dates[0].month - 1, dates[0].day)
     dates = [date.isoformat() for date in dates]
     dates.sort()
-    logging.info(dates)
-    logging.info(sensor)
-    logging.info(id)
     res = devices_data.find({
                     'id': id
                     #'$and': [
@@ -86,8 +83,7 @@ def get_data_for_graphic(id, sensor, range_type='day', dates=[None, None]):
                     'time': entry['time'].isoformat()
                 })
     
-    logging.info(processed_data)
-    values = [entry['value'] for entry in processed_data]
+    logging.info(processed_data)    values = [entry['value'] for entry in processed_data]
     times = [datetime.fromisoformat(entry['time']) for entry in processed_data]
 
     # Plot the data
@@ -101,7 +97,11 @@ def get_data_for_graphic(id, sensor, range_type='day', dates=[None, None]):
     plt.xticks(rotation=45)
     plt.grid(True)
 
-    # Show the plot
+    # Save the plot to a BytesIO object
+    buf = io.BytesIO()
     plt.tight_layout()
-    plt.show()
-    return processed_data
+    plt.savefig(buf, format='png')
+    plt.close()  # Close the plot to free up memory
+    buf.seek(0)  # Rewind the buffer to the beginning
+
+    return buf
